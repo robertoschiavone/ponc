@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <iostream>
+#include <random>
 
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
@@ -38,6 +39,10 @@ int main() {
     auto textWidth = text.getGlobalBounds().width;
     text.setPosition(float(width) / 2 - textWidth / 2, 20);
 
+    std::random_device random_device;
+    std::mt19937 random_engine{random_device()};
+    std::bernoulli_distribution coin_distribution{0.175};
+
     while (window->isOpen()) {
         auto event = new sf::Event();
         while (window->pollEvent(*event)) {
@@ -47,20 +52,12 @@ int main() {
                     break;
                 case sf::Event::KeyPressed:
                     switch (event->key.code) {
-                        case sf::Keyboard::W:
-                            state->paddleLeft()->moveUp();
-                            break;
-                        case sf::Keyboard::S:
-                            state->paddleLeft()->moveDown();
-                            break;
                         case sf::Keyboard::Up:
                             state->paddleRight()->moveUp();
                             break;
                         case sf::Keyboard::Down:
                             state->paddleRight()->moveDown();
                             break;
-                        case sf::Keyboard::Space:
-
                         default:
                             break;
                     }
@@ -74,6 +71,14 @@ int main() {
             accumulator -= ups;
             state->ball()->move(state->paddleLeft(), state->paddleRight(), state->player1Score(),
                                 state->player2Score());
+
+            if (coin_distribution(random_engine)) {
+                if (state->ball()->shape()->getPosition().y > state->paddleLeft()->shape()->getPosition().y + 50) {
+                    state->paddleLeft()->moveDown();
+                } else {
+                    state->paddleLeft()->moveUp();
+                }
+            }
         }
 
         std::stringstream newText;
